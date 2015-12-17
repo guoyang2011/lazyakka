@@ -52,7 +52,7 @@ class CompareFSM extends FSM[State,String]{
   }
   when(Stopping){
     case Event(CompareProtocol.End,_)=>
-      goto(Exited) using "5.Exited State!"
+      goto(Exited) using "5.Exited State!" forMax(500.milliseconds) replying("\t\t goto Exited State")
 
     case Event(CompareProtocol.GetStateData,currentState)=>
       sender() ! currentState+stateName
@@ -70,10 +70,11 @@ class CompareFSM extends FSM[State,String]{
       println(s"unhandled event message received,event[$event],state[$state]")
       stay()
   }
+  onTransition{
+    case UnInit->PreStart=> println("Start from [UnInit] to [PreStart]")
+  }
   initialize()
 }
-
-
 class ResourceManager extends Actor{
   val fsmActor=context.actorOf(Props[CompareFSM])
   import context.dispatcher
