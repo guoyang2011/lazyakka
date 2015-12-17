@@ -29,14 +29,14 @@ object CompareProtocol{
 
 class CompareFSM extends FSM[State,String]{
   startWith(UnInit,"1.UnInitialed")
-  when(UnInit){
+  when(UnInit,1.seconds){
     case Event(CompareProtocol.PreStart,_)=>
       goto(PreStart) using "2.pre start state!"
     case Event(CompareProtocol.GetStateData,currentState)=>
       sender() ! currentState+stateName
       stay()
   }
-  when(PreStart){
+  when(PreStart,1.seconds){
     case Event(CompareProtocol.Run, msg) =>
         goto(Running) using "3.Running State!"
     case Event(CompareProtocol.GetStateData,currentState)=>
@@ -65,6 +65,11 @@ class CompareFSM extends FSM[State,String]{
       sender() ! (currentState+stateName)
       stay()
   }
+  whenUnhandled{
+    case Event(event,state)=>
+      println(s"unhandled event message received,event[$event],state[$state]")
+      stay()
+  }
   initialize()
 }
 
@@ -76,7 +81,7 @@ class ResourceManager extends Actor{
   val allStatus=IndexedSeq(CompareProtocol.PreStart,CompareProtocol.Run,CompareProtocol.Stop,CompareProtocol.End)
   @throws[Exception](classOf[Exception])
   override def preStart(): Unit = {
-    context.system.scheduler.schedule(0.seconds,1.seconds){
+    context.system.scheduler.schedule(0.seconds,2.seconds){
       fsmActor ! CompareProtocol.GetStateData
       fsmActor ! allStatus(atomic.get()%allStatus.size)
       atomic.getAndIncrement()
