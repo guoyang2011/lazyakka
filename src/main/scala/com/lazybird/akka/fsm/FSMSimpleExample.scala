@@ -69,7 +69,7 @@ class CompareFSM extends FSM[State,String]{
 }
 
 
-class ResoucesManager extends Actor{
+class ResourceManager extends Actor{
   val fsmActor=context.actorOf(Props[CompareFSM])
   import context.dispatcher
   val atomic=new AtomicInteger(0)
@@ -89,6 +89,6 @@ class ResoucesManager extends Actor{
 object FSMSimpleExample {
   def main(args: Array[String]) {
     val system = ActorSystem("system")
-    val buncher=system.actorOf(Props[ResoucesManager])
+    system.actorOf(Props[ResourceManager])
   }
 }
